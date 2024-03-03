@@ -5,9 +5,29 @@
     <head>
         <title> app1 </title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <script src="https://kit.fontawesome.com/b930e26f61.js" crossorigin="anonymous"></script>
         <style>
             .row > div{
                 height: 100vh;
+            }
+
+            .codeBlock{
+                display: inline-block;
+                background-color: #f6f8fa;
+                padding: 7px;
+                border-style: none;
+                border-radius: 11px;
+            }
+            .copyButton{
+                padding: 5px;
+                border-style: none;
+                border-radius: 9px;
+                background-color: #f6f8fa;
+                transition: .2s ease;
+            }
+
+            .copyButton:hover{
+                box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
             }
         </style>
     </head>
@@ -41,6 +61,8 @@
         <!-- JavaScript -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
 
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+
         <script>
             document.addEventListener('DOMContentLoaded', function(){
                 let input = document.querySelector('#id_content');
@@ -58,6 +80,8 @@
                         para.innerHTML = `${htmlContent}`;
 
                         autoClose(input, e)
+
+                        applyStylesToMarkdown(para);
                     }
                 })
             })
@@ -123,10 +147,39 @@
                             // Set the caret position to where it was before the insertion
                             input.selectionStart = input.selectionEnd = caretPos;
                         }
+                    }
                 }
             }
-        }
 
+            function applyStylesToMarkdown(para) {
+                let codeBlocks = para.querySelectorAll('pre code');
+
+                codeBlocks.forEach((codeBlock) => {
+                    codeBlock.classList.add('codeBlock');
+
+                    let copyButton = document.createElement('span');
+                    copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+                    // copyButton.textContent = 'Copy';
+                    copyButton.className = 'copyButton';
+                    copyButton.style.marginLeft = '10px';
+
+                    codeBlock.parentNode.appendChild(copyButton);
+                });
+                // Initialize ClipboardJS after buttons are added
+                const clipboard = new ClipboardJS('.copyButton', {
+                    text: function (trigger) {
+                        return trigger.parentNode.querySelector('code').innerText;
+                    }
+                });
+                // Optional: Display a tooltip when the copy operation is successful
+                clipboard.on('success', function (e) {
+                    e.clearSelection();
+                    e.trigger.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    setTimeout(function () {
+                        e.trigger.innerHTML = '<i class="fas fa-copy"></i>';
+                    }, 1000);
+            }    );
+            }
         </script>
     </body>
 </html>
