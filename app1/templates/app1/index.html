@@ -1,0 +1,155 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title> app1 </title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <style>
+            .row > div{
+                height: 100vh;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="row">
+            <div class="sidebar col-lg-6 col-md-7 bg-light">
+                <h2> left </h2>
+                <hr>
+
+                <form action="{% url 'index' %}" method="post">
+                    {% csrf_token %}
+                    {% for fm in form %}
+                    <label> {{fm.label}} </label>
+                    <div class="form-group">
+                        {{fm}}
+                    </div>
+                    {% endfor %}
+                    <div>
+                        <button class="btn btn-sm btn-info"> save </button>
+                    </div>
+                </form>
+
+            </div>
+            <div class="main col-lg-6 col-md-7">
+                <h2> right </h2>
+                <hr>
+                <div id="display"></div>
+            </div>
+        </div>
+
+        <!-- JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function(){
+                let input = document.querySelector('#id_content');
+                console.log(input.value);
+                let para = document.querySelector('#display');
+
+
+                // Initialize Showdown for Markdown to HTML conversion
+                const converter = new showdown.Converter();
+
+                input.addEventListener('input', function(e){
+                    // When you delete all the text, input.value becomes an empty string, which is considered falsy in JavaScript, so the display doesn't update.
+                    if (input.value != null){
+                        let htmlContent = converter.makeHtml(input.value);
+                        para.innerHTML = `${htmlContent}`;
+
+                        autoClose(input, e)
+                    }
+                })
+            })
+
+            // function autoClose(input, event){
+            //     let caretPos = input.selectionStart;
+            //     console.log('pos: ',caretPos);
+
+            //     let char1 = input.value.charAt(caretPos-2);
+            //     let char2 = input.value.charAt(caretPos-1);
+            //     if ((char2 === '>') && (char1 != ' ')){
+            //         console.log('char:', char2);
+            //         let beforeCaret = input.value.substring(0, caretPos);
+            //         let afterCaret = input.value.substring(caretPos);
+            //         input.value = beforeCaret + '</a>' + afterCaret;
+
+            //         // Set the caret position to where it was before the insertion
+            //         input.selectionStart = input.selectionEnd = caretPos;
+            //     }
+            // }
+
+            function autoClose(input, event){
+                let caretPos = input.selectionStart;
+                console.log('pos: ',caretPos);
+
+                let char1 = input.value.charAt(caretPos-2);
+                let char2 = input.value.charAt(caretPos-1);
+
+                if (event.inputType === 'deleteContentBackward' && char2 === '>') {
+                    return;
+                }
+
+                if ((char2 === '>') && (char1 != ' ')){
+                    console.log('char:', char2);
+                    // Find the opening '<' character before caretPos
+                    let openingBracketIndex = input.value.lastIndexOf('<', caretPos - 2);
+                    let ErrorTag = openingBracketIndex+1;
+                    let charAtErrorTag = input.value.charAt(ErrorTag);
+
+                    let tagEnd = input.value.indexOf(' ', openingBracketIndex);
+                    console.log('tagEnd', tagEnd);
+                    if (openingBracketIndex !== -1 && charAtErrorTag !== '/') {
+                        // Extract the tag name from the opening tag
+                        if (tagEnd !== -1){
+                            console.log('hey')
+                            let tagName = input.value.substring(openingBracketIndex + 1, tagEnd).trim();
+
+                            // Insert the closing tag with the corresponding name
+                            let beforeCaret = input.value.substring(0, caretPos);
+                            let afterCaret = input.value.substring(caretPos);
+                            input.value = beforeCaret + `</${tagName}>` + afterCaret;
+
+                            // Set the caret position to where it was before the insertion
+                            input.selectionStart = input.selectionEnd = caretPos;
+
+                        }else{
+                            let tagName = input.value.substring(openingBracketIndex + 1, caretPos - 1).trim();
+                            // Insert the closing tag with the corresponding name
+                            let beforeCaret = input.value.substring(0, caretPos);
+                            let afterCaret = input.value.substring(caretPos);
+                            input.value = beforeCaret + `</${tagName}>` + afterCaret;
+
+                            // Set the caret position to where it was before the insertion
+                            input.selectionStart = input.selectionEnd = caretPos;
+                        }
+                }
+            }
+        }
+
+        </script>
+    </body>
+</html>
+
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+<script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        CKEDITOR.replace('id_content', {
+            skin: 'moono-lisa,/path/to/bootstrapck/',
+            // Other CKEditor configurations...
+        });
+
+        // Initialize Showdown for Markdown to HTML conversion
+        const converter = new showdown.Converter();
+        
+        CKEDITOR.instances['id_content'].on('change', function() {
+            let para = document.querySelector('#display');
+            let HTMLContent = CKEDITOR.instances['id_content'].getData();
+            para.innerHTML = HTMLContent
+
+            let para1 = document.querySelector('p');
+        });
+    })
+</script> -->
