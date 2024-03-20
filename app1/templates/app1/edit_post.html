@@ -1,0 +1,15 @@
+{% load mathjax %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title> post </title>
+        {% mathjax_scripts %}
+    </head>
+    <body>
+        {{post_content|safe}}
+        <p>$$1+1=2$$</p>
+
+        <a href="{% url 'newapp:edit_post' post.id %}"> edit post </a>
+
+    </body>
+</html>

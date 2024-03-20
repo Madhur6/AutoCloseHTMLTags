@@ -6,8 +6,14 @@
         {% mathjax_scripts %}
     </head>
     <body>
-        {{post_content|safe}}
-        <p>$$1+1=2$$</p>
+        <div class="post" id="post_{{post.id}}">
+            {{post_content|safe}}
+            <p>$$1+1=2$$</p>
+        </div>
+
+        <a href="{% url 'newapp:edit_post' post.id %}"> edit </a>
+
+
         <a href="{% url 'newapp:download_word_doc' post_id=post.id %}"> download word </a>
     </body>
 </html>

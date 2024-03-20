@@ -11,6 +11,7 @@ from markdown2 import Markdown
 from docx import Document
 from io import BytesIO
 
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
@@ -30,7 +31,7 @@ def index(request):
 
             post = Post.objects.create(title=title, content=content)
             post.save()
-            
+
             messages.info(request, 'Post created successfully!')
             return redirect('newapp:index')
         else:
@@ -45,6 +46,29 @@ def index(request):
 def CheckPost(request, post_id):
     post = Post.objects.get(pk=post_id)
     return render(request, "app1/post.html", {"post":post,"post_content":markdown(post.content)})
+
+
+def display(request):
+    posts = Post.objects.all()
+    return render(request, "app1/display.html", {
+        "posts": posts
+    })
+
+
+def edit_post(request, post_id):
+    post = Post.objects.get(pk=post_id)
+
+    if request.method == "POST":
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Post updated successfully!')
+            return redirect('newapp:CheckPost', post_id=post_id)
+    else:
+        form = PostForm(instance=post, initial={'content': post.content})
+
+    return render(request, 'app1/index.html', {'form': form, 'post': post})
+
 
 
 def download_word_doc(request, post_id):

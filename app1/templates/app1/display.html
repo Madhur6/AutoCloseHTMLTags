@@ -1,0 +1,23 @@
+{% load mathjax %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title> post </title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        {% mathjax_scripts %}
+    </head>
+    <body>
+        
+        {% for post in posts %}
+        <div>
+            <div class="border border-1 border-dark p-2 m-2 rounded">
+                {{post.content|safe}}
+                <a href="{% url 'newapp:CheckPost' post.id %}" class="btn btn-sm btn-success"> details </a>
+            </div>
+        </div>
+        {% empty %}
+        <p> no posts yet... </p>
+        {% endfor %}
+
+    </body>
+</html>

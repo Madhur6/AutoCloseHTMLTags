@@ -98,12 +98,14 @@
                         let htmlContent = converter.makeHtml(input.value);
                         para.innerHTML = `${htmlContent}`;
 
-                        autoClose(input, e)
+                        autoClose(input, e);
 
                         applyStylesToMarkdown(para);
 
                         // Trigger MathJax to process the updated content
                         MathJax.Hub.Queue(["Typeset", MathJax.Hub, para]);
+
+                        autoCloseMath(input, e);
                     }
                 })
             })
@@ -127,7 +129,7 @@
 
             function autoClose(input, event){
                 let caretPos = input.selectionStart;
-                console.log('pos: ',caretPos);
+                // console.log('pos: ',caretPos);
 
                 let char1 = input.value.charAt(caretPos-2);
                 let char2 = input.value.charAt(caretPos-1);
@@ -137,18 +139,18 @@
                 }
 
                 if ((char2 === '>') && (char1 != ' ')){
-                    console.log('char:', char2);
+                    // console.log('char:', char2);
                     // Find the opening '<' character before caretPos
                     let openingBracketIndex = input.value.lastIndexOf('<', caretPos - 2);
                     let ErrorTag = openingBracketIndex+1;
                     let charAtErrorTag = input.value.charAt(ErrorTag);
 
                     let tagEnd = input.value.indexOf(' ', openingBracketIndex);
-                    console.log('tagEnd', tagEnd);
+                    // console.log('tagEnd', tagEnd);
                     if (openingBracketIndex !== -1 && charAtErrorTag !== '/') {
                         // Extract the tag name from the opening tag
                         if (tagEnd !== -1){
-                            console.log('hey')
+                            // console.log('hey')
                             let tagName = input.value.substring(openingBracketIndex + 1, tagEnd).trim();
 
                             // Insert the closing tag with the corresponding name
@@ -173,9 +175,35 @@
                 }
             }
 
-            function applyStylesToMarkdown(para) {
-                let codeBlocks = para.querySelectorAll('pre code');
+            function autoCloseMath(input, event){
+                let caretPos = input.selectionStart;
+                let char1 = input.value.charAt(caretPos-1)
+                let char2 = input.value.charAt(caretPos-2)
 
+                if (event.inputType === 'deleteContentBackward' && char2 === '$') {
+                    return;
+                }
+                if (char1 === '$' && char2 === '$'){
+                    // Find the opening '$$' character before caretPos (modified from 3 to 2)
+                    let openingDollarIndex = input.value.lastIndexOf('$$', caretPos - 2);
+                    // console.log('mathjax:',openingDollarIndex);
+
+                    if (openingDollarIndex !== -1) {
+                        // Insert the closing '$$' after the opening one
+                        let beforeCaret = input.value.substring(0, caretPos);
+                        let afterCaret = input.value.substring(caretPos);
+                        input.value = beforeCaret + '$$' + afterCaret;
+
+                        // Set the caret position after the closing '$$'
+                        input.selectionStart = input.selectionEnd = caretPos;
+                    }
+
+                }
+            }
+
+            function applyStylesToMarkdown(para) {
+                let codeBlocks = para.querySelectorAll('pre code, code'); // modified added code as well
+                console.log('codeBlocks: ', codeBlocks);
                 codeBlocks.forEach((codeBlock) => {
                     codeBlock.classList.add('codeBlock');
 
@@ -186,6 +214,8 @@
                     copyButton.style.marginLeft = '10px';
 
                     codeBlock.parentNode.appendChild(copyButton);
+                    // // Append copy button to the code block itself
+                    // codeBlock.parentNode.insertBefore(copyButton, codeBlock.nextSibling);
                 });
                 // Initialize ClipboardJS after buttons are added
                 const clipboard = new ClipboardJS('.copyButton', {
