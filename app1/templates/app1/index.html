@@ -78,6 +78,10 @@
         </div>
 
         <!-- JavaScript -->
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked-footnote/dist/index.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/3.0.2/marked.min.js"></script>
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
@@ -89,13 +93,42 @@
                 let para = document.querySelector('#display');
 
 
+                // Use the footnote extension
+                marked.use(markedFootnote());
+
                 // Initialize Showdown for Markdown to HTML conversion
-                const converter = new showdown.Converter();
+                // const converter = new showdown.Converter();
+
+                const renderer = new marked.Renderer();
+                marked.setOptions({
+                    renderer: renderer,
+                    gfm: true,
+                    breaks: true,
+                    pedantic: false, // Set to true if you want to conform to the original markdown.pl as much as possible
+                    // silent: false,
+                    // smartypants: true,
+                    // tokenizer: new marked.Tokenizer(),
+                    // async: true, // Set to true if you want to use async walkTokens functions
+                    // walkTokens: null, // Add your custom walkTokens function here if needed
+                    // // Add any other options you need
+                });
+
+
+                // Additionally, you may want to add support for superscripts
+                // You can do this by overriding the `text` method of the renderer
+                renderer.text = function(text) {
+                    // Check if the text contains a superscript pattern (^text^)
+                    text = text.replace(/\^([^\^]+)\^/g, '<sup>$1</sup>');
+                    // Call the original text method with modified text
+                    return marked.Renderer.prototype.text.call(this, text);
+                };
+
 
                 input.addEventListener('input', function(e){
                     // When you delete all the text, input.value becomes an empty string, which is considered falsy in JavaScript, so the display doesn't update.
                     if (input.value != null){
-                        let htmlContent = converter.makeHtml(input.value);
+                        // let htmlContent = converter.makeHtml(input.value);
+                        let htmlContent = marked(input.value);
                         para.innerHTML = `${htmlContent}`;
 
                         autoClose(input, e);
